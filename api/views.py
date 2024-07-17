@@ -2,6 +2,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
+from .models import Feedback
+from .serializers import FeedbackSerializer
 
 # Load the tokenizer and model from Hugging Face
 tokenizer = AutoTokenizer.from_pretrained("bilalRahib/TinyLLama-NSFW-Chatbot")
@@ -15,5 +17,12 @@ def chat(request):
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return Response({'response': response})
 
+@api_view(['POST'])
+def submit_feedback(request):
+    if request.method == 'POST':
+        serializer = FeedbackSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success": "Feedback submitted successfully"}, status=201)
+        return Response(serializer.errors, status=400)
 
-# Create your views here.
